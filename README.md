@@ -3,20 +3,20 @@
 Job manager for admins and bosses.
 
 ## Features
-*Admin*
+**Admin**
 - Manage bosses and jobs
 - Multilanguage
 
-*Boss*
+**Boss**
 - Hire and fire employees
 - Salary management
 - Promote and degrade employees
 
-*Employees*
+**Employees**
 - Get on or off duty at any job
 - Receive salary
 
-*UI*
+**UI**
 - Extends ui with job name and grade
 
 
