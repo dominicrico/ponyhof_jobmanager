@@ -21,10 +21,10 @@ Job manager for admins and bosses.
 
 
 ## Requirements
-- ghmattimysql
-- VORP-Core
-- VORP-Inputs
-- VORP-Character
+- [ghmattimysql](https://github.com/GHMatti/ghmattimysql/releases)
+- [VORP-Core](https://github.com/VORPCORE/VORP-Core/releases)
+- [VORP-Inputs](https://github.com/VORPCORE/VORP-Inputs/releases)
+- [VORP-Character](https://github.com/VORPCORE/VORP-Character/releases)
 
 ## How to install
 - Download files or clone repository
