@@ -1,12 +1,8 @@
 
 # Ponyhof Job Manager
----
-
 Job manager for admins and bosses.
 
 ## Features
----
-
 *Admin*
 - Manage bosses and jobs
 - Multilanguage
@@ -25,16 +21,12 @@ Job manager for admins and bosses.
 
 
 ## Requirements
----
-
 - ghmattimysql
 - VORP-Core
 - VORP-Inputs
 - VORP-Character
 
 ## How to install
----
-
 - Download files or clone repository
 - Copy and paste ``ponyhof_jobmanager`` folder to resources/
 - Import ``jobmanager.sql`` to your database
