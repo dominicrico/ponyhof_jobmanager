@@ -1,23 +1,24 @@
 
 # Ponyhof Job Manager
-Job manager for admins and bosses.
+Job/Gang manager for admins and (gang) bosses.
 
 ## Features
 **Admin**
-- Manage bosses and jobs
+- Manage Bosses and Jobs
 - Multilanguage
 
 **Boss**
-- Hire and fire employees
-- Salary management
-- Promote and degrade employees
+- Hire and Fire employees
+- Salary Management
+- JobGrad Management
+- Promote and Degrade employees/members
 
-**Employees**
-- Get on or off duty at any job
-- Receive salary
+**Employees / Members**
+- Get On or Off Duty at any job (not for gangs)
+- Receive Salary
 
 **UI**
-- Extends ui with job name and grade
+- Extends UI with Job/Gang Name and Grade
 
 
 ## Requirements
