@@ -20,7 +20,6 @@ Job/Gang manager for admins and (gang) bosses.
 **UI**
 - Extends UI with Job/Gang Name and Grade
 
-
 ## Requirements
 - [ghmattimysql](https://github.com/GHMatti/ghmattimysql/releases)
 - [VORP-Core](https://github.com/VORPCORE/VORP-Core/releases)

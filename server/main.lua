@@ -21,7 +21,7 @@ AddEventHandler('pony_job_manager:check_admin', function()
     local targetidentifier = Character.identifier
     local targetcharidentifier = Character.charIdentifier
     local group = Character.group
-    
+
     TriggerClientEvent('pony_job_manager:get_group', _source, group)
 end)
 
@@ -32,14 +32,18 @@ AddEventHandler('pony_job_manager:hire_boss', function(target, job)
   local targetidentifier = Character2.identifier
   local targetcharidentifier = Character2.charIdentifier
   local _source = source
-  print("Hire new boss", target, job)
+
   exports.ghmattimysql:execute('SELECT * FROM jobmanager WHERE identifier=@identifier AND charidentifier=@charidentifier', {['identifier'] = targetidentifier, ['charidentifier'] = targetcharidentifier}, function(result)
     if result[1] ~= nil then
-      print("player" .. targetidentifier .. "is already a boss")
+      print("player " .. targetidentifier .. " is already a boss")
+      TriggerClientEvent("vorp:TipRight", _source, _U('player_is_boss_msg'), 20 * 1000)
     else
       exports.ghmattimysql:execute('INSERT INTO jobmanager (identifier, charidentifier, jobname) VALUES (@identifier, @charidentifier, @job)', {['identifier'] = targetidentifier, ['charidentifier'] = targetcharidentifier, ['job'] = job},function (result)
         if result.affectedRows < 1 then
           log("error", "failed to hire as boss for player " .. targetidentifier)
+        else
+          TriggerClientEvent("vorp:TipRight", target, _U('job_hired_as_boss_msg', job), 20 * 1000)
+          TriggerClientEvent("vorp:TipRight", _source, _U('job_hired_boss_msg', job), 20 * 1000)
         end
       end)
     end
@@ -49,7 +53,9 @@ end)
 
 -- Fire Boss for a Job
 RegisterServerEvent('pony_job_manager:fire_boss')
-AddEventHandler('pony_job_manager:fire_boss', fireboss)
+AddEventHandler('pony_job_manager:fire_boss', function(target)
+  fireboss(target, source)
+end)
 
 -- BOSS MANAGER --
 
@@ -171,31 +177,37 @@ end)
 -- Hire Employee for Job
 RegisterServerEvent('pony_job_manager:hire')
 AddEventHandler('pony_job_manager:hire', function(target, job, jobgrade)
-  local Character2 = VorpCore.getUser(target).getUsedCharacter
-  local targetidentifier = Character2.identifier
-  local targetcharidentifier = Character2.charIdentifier
+  local _source = source
+  local Character = VorpCore.getUser(target).getUsedCharacter
+  local targetidentifier = Character.identifier
+  local targetcharidentifier = Character.charIdentifier
 
   local jobgrade = tonumber(jobgrade)
 
-  exports.ghmattimysql:execute('UPDATE characters SET job=@job, jobgrade=@grade  WHERE identifier=@identifier AND charidentifier=@charidentifier', {['job'] = job, ['grade'] = jobgrade, ['identifier'] = targetidentifier, ['charidentifier'] = targetcharidentifier},function (result)
-    if result.affectedRows < 1 then
-      log("error", "failed to hire for " .. targetidentifier)
-    end
+  Character.setJob(job)
+  Character.setJobGrade(grade)
 
-  end)
+  TriggerEvent('pony_job_manager:get_grade', targetcharidentifier)
+
+  TriggerClientEvent("vorp:TipRight", target, _U('job_hired_msg', job), 20 * 1000)
+  TriggerClientEvent("vorp:TipRight", _source, _U('job_new_employee_msg'), 20 * 1000)
 end)  
 
 -- Fire Employee for Job
 RegisterServerEvent('pony_job_manager:fire')
 AddEventHandler('pony_job_manager:fire', function (targetidentifier, targetcharidentifier)
-  exports.ghmattimysql:execute('UPDATE characters SET job=@job, jobgrade=@grade  WHERE identifier=@identifier AND charidentifier=@charidentifier', { ['job'] = 'unemployed', ['grade'] = 0, ['identifier'] = targetidentifier, ['charidentifier'] = targetcharidentifier},function (result)
-    if result.affectedRows < 1 then
-      log("error", "failed to fire for " .. targetidentifier)
-    else 
-      fireboss(targetcharidentifier)
-    end
+  local _source = source
+  local Character = VorpCore.getUser(targetidentifier).getUsedCharacter
 
-  end)
+  Character.setJob('unemployed')
+  Character.setJobGrade(0)
+
+  fireboss(targetcharidentifier, _source)
+
+  TriggerEvent('pony_job_manager:get_grade', targetcharidentifier)
+
+  TriggerClientEvent("vorp:TipRight", targetidentifier, _U('job_fired_msg', job), 20 * 1000)
+  TriggerClientEvent("vorp:TipRight", _source, _U('job_fired_employee_msg'), 20 * 1000)
 end)
 
 -- Promote/Degrade Employee for Job
@@ -203,27 +215,35 @@ RegisterServerEvent('pony_job_manager:change_grade')
 AddEventHandler('pony_job_manager:change_grade', function (targetidentifier, targetcharidentifier, jobgrade)
   local grade = tonumber(jobgrade)
 
-  local Character = VorpCore.getUser(source).getUsedCharacter
+  local Character = VorpCore.getUser(targetcharidentifier).getUsedCharacter
   Character.setJobGrade(grade)
+
+  TriggerEvent('pony_job_manager:get_grade', targetcharidentifier)
 end)
 
 -- EMPLOYEE STUFF --
 
 -- Get Job grade name for ui
 RegisterServerEvent('pony_job_manager:get_grade')
-AddEventHandler('pony_job_manager:get_grade', function()
-    local User = VorpCore.getUser(source)
-    local _source = source
+AddEventHandler('pony_job_manager:get_grade', function(id)
+    local User = {}
+    local _source = nil
+
+    if id ~= nil then
+      User = VorpCore.getUser(id)
+      _source = id
+    else
+      User = VorpCore.getUser(source)
+      _source = source
+    end
+
     local Character = User.getUsedCharacter
     local u_job = Character.job
     local u_grade = Character.jobGrade
 
     exports.ghmattimysql:execute('SELECT * FROM jobgrades WHERE identifier=@identifier AND grade=@grade', {['identifier'] = u_job, ['grade'] = u_grade}, function(result)
         if result[1] ~= nil and result[1].gradename ~= nil then
-					local U = {}
-					U.job = Character.job
-					U.grade = result[1].gradename
-          TriggerClientEvent('pony_job_manager:set_grade', _source, U)
+          TriggerClientEvent('pony_job_manager:set_grade', _source, Character.job, result[1].gradename)
         else
           print("grade not found with id", u_grade)
         end
@@ -240,10 +260,10 @@ AddEventHandler('pony_job_manager:switch_duty', function()
 
 	if string.sub(Character.job, 0, 3) == 'off' then
 		TriggerServerEvent("pony_job_manager:givejob", Character.charIdentifier, string.sub(Character.job, 4, -1), Character.jobGrade)
-		TriggerClientEvent("vorp:TipRight", _source, Config.Notify_On_Duty, 20 * 1000)
+		TriggerClientEvent("vorp:TipRight", _source, _U('job_on_duty_msg'), 20 * 1000)
 	elseif string.sub(Character.job, 0, 3) ~= 'off' then
 		TriggerServerEvent("pony_job_manager:givejob", Character.charIdentifier, 'off'..Character.job, Character.jobGrade)
-		TriggerClientEvent("vorp:TipRight", _source, Config.Notify_Off_Duty, 20 * 1000)
+		TriggerClientEvent("vorp:TipRight", _source, _U('job_off_duty_msg'), 20 * 1000)
 	end
 
 end)
@@ -290,16 +310,20 @@ end)
 
 -- functions
 
-function fireboss(target)
-  local Character2 = VorpCore.getUser(target).getUsedCharacter
-  local targetidentifier = Character2.identifier
-  local targetcharidentifier = Character2.charIdentifier
-  local _source = source
+function fireboss(target, _source)
+  local Character = VorpCore.getUser(target).getUsedCharacter
+  local targetidentifier = Character.identifier
+  local targetcharidentifier = Character.charIdentifier
 
-  exports.ghmattimysql:execute('DELETE FROM jobmanager WHERE identifier=@identifier AND charidentifier=@charidentifier', { ['identifier'] = targetidentifier, ['charidentifier'] = targetcharidentifier},function (result)
+  print(targetidentifier, targetcharidentifier)
+
+  exports.ghmattimysql:execute('DELETE FROM jobmanager WHERE identifier=@identifier AND charidentifier=@charidentifier', { ['identifier'] = targetidentifier, ['charidentifier'] = targetcharidentifier },function (result)
     if result.affectedRows < 1 then
       log("error", "failed to fire boss for player " .. targetidentifier)
+    else
+      log("fired boss for player " .. targetidentifier)
+      TriggerClientEvent("vorp:TipRight", target, _U('job_fired_as_boss_msg'), 20 * 1000)
+      TriggerClientEvent("vorp:TipRight", _source, _U('job_fired_boss_msg'), 20 * 1000)
     end
-
   end)
 end

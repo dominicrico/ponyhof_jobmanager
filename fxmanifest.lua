@@ -18,8 +18,16 @@ shared_scripts {
   'utils/locale.lua',
   'utils/utils.lua',
   'config.lua',
-  'locales/de.lua',
+  'locales/*.lua',
 }
+
+files {
+  'ui/hud.html',
+  'ui/css/style.css',
+  'ui/fonts/rdrlino-regular-webfont.woff'
+}
+
+ui_page 'ui/hud.html'
 
 dependencies {
   'vorp_core',
