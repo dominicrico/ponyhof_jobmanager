@@ -216,7 +216,7 @@ AddEventHandler('pony_job_manager:get_grade', function()
     local _source = source
     local Character = User.getUsedCharacter
     local u_job = Character.job
-    local u_grade = Character.jobgrade
+    local u_grade = Character.jobGrade
 
     exports.ghmattimysql:execute('SELECT * FROM jobgrades WHERE identifier=@identifier AND grade=@grade', {['identifier'] = u_job, ['grade'] = u_grade}, function(result)
         if result[1] ~= nil and result[1].gradename ~= nil then
